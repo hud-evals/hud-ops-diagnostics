@@ -1,0 +1,180 @@
+version: '1.3'
+images:
+  local: hud-ops-diagnostics:0.1.2
+  full: hud-ops-diagnostics:0.1.2@sha256:b63a8bfcd2f0e4d613e5e9b2d36aea219812e3afa82554fe67bce2f2c5eb2c92
+  pushed: null
+build:
+  generatedAt: 2026-01-08T21:00:21.084863+00:00Z
+  hudVersion: 0.5.2
+  directory: hud-ops-diagnostics
+  version: 0.1.2
+  sourceHash: 12f625683a12f95d23ebafa5d146db6184eb9091df48ad6695c5aa72ef8e98a9
+  baseImage: python:3.11-slim
+  platform: linux/amd64
+  sourceFiles:
+  - Dockerfile.hud
+  - pyproject.toml
+environment:
+  initializeMs: 13889
+  toolCount: 1
+  runtime:
+    python: 3.11.14
+    cuda: null
+    cudnn: null
+    pytorch: null
+  internalToolCount: 0
+  variables:
+    _note: You can edit this section to add or modify environment variables. Provided
+      variables will be used when running the environment.
+    required:
+    - HUD_API_KEY
+    - KUBECONFIG_B64
+    - OPENAI_API_KEY
+    - RAILWAY_API_TOKEN
+    - SENTRY_AUTH_TOKEN
+    - SUPABASE_ACCESS_TOKEN
+    - SUPABASE_PROJECT_REF
+    - YXdzDQo
+tools:
+- name: _hud_submit
+  description: "Submit the agent's answer for a scenario's evaluate phase.\n\nInternal\
+    \ tool - called by Environment.submit() on connected hubs.\n\nArgs:\n    scenario:\
+    \ Name of the scenario (without env prefix)\n    answer: The agent's answer/result\
+    \ to submit"
+  inputSchema:
+    properties:
+      scenario:
+        type: string
+      answer:
+        type: string
+    required:
+    - scenario
+    - answer
+    type: object
+prompts:
+- name: sentry-agent:investigate
+  description: "[Setup] Investigate errors in Sentry.\n    \n    Args:\n        query:\
+    \ What to investigate (issue ID, error message, or search query)\n        must_include:\
+    \ (Eval only) Facts that must appear in response for full credit\n        must_not_include:\
+    \ (Eval only) Common mistakes to penalize\n    "
+  arguments:
+  - name: query
+    required: true
+    description: null
+    type: string
+  - name: must_include
+    required: false
+    description: null
+    default: null
+    inputSchema: &id001
+      anyOf:
+      - items:
+          type: string
+        type: array
+      - type: 'null'
+  - name: must_not_include
+    required: false
+    description: null
+    default: null
+    inputSchema: &id002
+      anyOf:
+      - items:
+          type: string
+        type: array
+      - type: 'null'
+  meta:
+    code: "@sentry_env.scenario(\"investigate\")\nasync def investigate_issue(\n \
+      \   query: str,\n    # Eval-only params - hidden from orchestrator, used for\
+      \ scoring\n    must_include: list[str] | None = None,\n    must_not_include:\
+      \ list[str] | None = None,\n) -> Any:\n    \"\"\"Investigate errors in Sentry.\n\
+      \    \n    Args:\n        query: What to investigate (issue ID, error message,\
+      \ or search query)\n        must_include: (Eval only) Facts that must appear\
+      \ in response for full credit\n        must_not_include: (Eval only) Common\
+      \ mistakes to penalize\n    \"\"\"\n    prompt = f\"\"\"You are a Sentry specialist.\
+      \ Investigate the following:\n\n**Query:** {query}\n\n**IMPORTANT: This is a\
+      \ READ-ONLY investigation. Do NOT modify issue status or assignments.**\n\n\
+      Use the available Sentry tools to:\n1. Search for related issues or events\n\
+      2. Get issue details if you find relevant issues\n3. Analyze with Seer if available\
+      \ for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n\
+      - Root cause analysis with specific technical details\n- Affected users/occurrences\n\
+      - Recommended fixes (for human to implement)\"\"\"\n\n    response = yield prompt\n\
+      \    \n    if not response:\n        yield 0.0\n        return\n    \n    response_lower\
+      \ = response.lower()\n    score = 0.0\n    \n    # Each required fact found\
+      \ = partial credit\n    if must_include:\n        matches = sum(1 for fact in\
+      \ must_include if fact.lower() in response_lower)\n        score = matches /\
+      \ len(must_include)\n    else:\n        # No specific requirements = full credit\
+      \ for any response\n        score = 1.0\n    \n    # Penalize common confusion/mistakes\n\
+      \    if must_not_include:\n        mistakes = sum(1 for bad in must_not_include\
+      \ if bad.lower() in response_lower)\n        score -= 0.2 * mistakes\n    \n\
+      \    yield max(0.0, min(1.0, score))\n"
+    arguments:
+    - name: query
+      required: true
+      type: string
+    - name: must_include
+      required: false
+      default: null
+      inputSchema: *id001
+    - name: must_not_include
+      required: false
+      default: null
+      inputSchema: *id002
+    _fastmcp:
+      tags: []
+resources:
+- uri: sentry-agent:investigate
+  name: investigate
+  description: "[Evaluate] Investigate errors in Sentry.\n    \n    Args:\n      \
+    \  query: What to investigate (issue ID, error message, or search query)\n   \
+    \     must_include: (Eval only) Facts that must appear in response for full credit\n\
+    \        must_not_include: (Eval only) Common mistakes to penalize\n    "
+  mime_type: application/json
+  meta:
+    code: "@sentry_env.scenario(\"investigate\")\nasync def investigate_issue(\n \
+      \   query: str,\n    # Eval-only params - hidden from orchestrator, used for\
+      \ scoring\n    must_include: list[str] | None = None,\n    must_not_include:\
+      \ list[str] | None = None,\n) -> Any:\n    \"\"\"Investigate errors in Sentry.\n\
+      \    \n    Args:\n        query: What to investigate (issue ID, error message,\
+      \ or search query)\n        must_include: (Eval only) Facts that must appear\
+      \ in response for full credit\n        must_not_include: (Eval only) Common\
+      \ mistakes to penalize\n    \"\"\"\n    prompt = f\"\"\"You are a Sentry specialist.\
+      \ Investigate the following:\n\n**Query:** {query}\n\n**IMPORTANT: This is a\
+      \ READ-ONLY investigation. Do NOT modify issue status or assignments.**\n\n\
+      Use the available Sentry tools to:\n1. Search for related issues or events\n\
+      2. Get issue details if you find relevant issues\n3. Analyze with Seer if available\
+      \ for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n\
+      - Root cause analysis with specific technical details\n- Affected users/occurrences\n\
+      - Recommended fixes (for human to implement)\"\"\"\n\n    response = yield prompt\n\
+      \    \n    if not response:\n        yield 0.0\n        return\n    \n    response_lower\
+      \ = response.lower()\n    score = 0.0\n    \n    # Each required fact found\
+      \ = partial credit\n    if must_include:\n        matches = sum(1 for fact in\
+      \ must_include if fact.lower() in response_lower)\n        score = matches /\
+      \ len(must_include)\n    else:\n        # No specific requirements = full credit\
+      \ for any response\n        score = 1.0\n    \n    # Penalize common confusion/mistakes\n\
+      \    if must_not_include:\n        mistakes = sum(1 for bad in must_not_include\
+      \ if bad.lower() in response_lower)\n        score -= 0.2 * mistakes\n    \n\
+      \    yield max(0.0, min(1.0, score))\n"
+    arguments:
+    - name: query
+      required: true
+      type: string
+    - name: must_include
+      required: false
+      default: null
+      inputSchema:
+        anyOf:
+        - items:
+            type: string
+          type: array
+        - type: 'null'
+    - name: must_not_include
+      required: false
+      default: null
+      inputSchema:
+        anyOf:
+        - items:
+            type: string
+          type: array
+        - type: 'null'
+    _fastmcp:
+      tags: []
