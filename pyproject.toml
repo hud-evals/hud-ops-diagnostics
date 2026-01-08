@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-hud-python = { git = "https://github.com/hud-evals/hud-python", branch = "feat/scenario-improvements" }
+hud-python = { git = "https://github.com/hud-evals/hud-python", rev = "5325d2986598dd8d91befe07aa7a1c4d7d0a55c6" }
 
 [build-system]
 requires = ["hatchling"]
