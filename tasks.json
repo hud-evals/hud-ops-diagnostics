@@ -3,7 +3,10 @@
     "name": "find_responses_schema_error",
     "description": "Find the schema error on /responses (not /chat/completions)",
     "difficulty": "hard",
-    "scenario": "sentry/investigate",
+    "env": {
+      "name": "sentry-agent"
+    },
+    "scenario": "investigate",
     "args": {
       "query": "Find schema validation errors on the /responses endpoint, not /chat/completions",
       "must_include": [
@@ -22,7 +25,10 @@
     "name": "find_chat_schema_error",
     "description": "Find the schema error on /chat/completions with array items issue",
     "difficulty": "medium",
-    "scenario": "sentry/investigate",
+    "env": {
+      "name": "sentry-agent"
+    },
+    "scenario": "investigate",
     "args": {
       "query": "Find schema validation errors related to array items on chat completions",
       "must_include": [
@@ -41,7 +47,10 @@
     "name": "uuid_vs_slug_confusion",
     "description": "Identify that task_version_id receives slugs instead of UUIDs",
     "difficulty": "hard",
-    "scenario": "sentry/investigate",
+    "env": {
+      "name": "sentry-agent"
+    },
+    "scenario": "investigate",
     "args": {
       "query": "Investigate the invalid UUID syntax errors on trace enter endpoint",
       "must_include": [
@@ -58,7 +67,10 @@
     "name": "find_internal_ip_exposure",
     "description": "Find errors that expose internal network addresses",
     "difficulty": "hard",
-    "scenario": "sentry/investigate",
+    "env": {
+      "name": "sentry-agent"
+    },
+    "scenario": "investigate",
     "args": {
       "query": "Find any errors that expose internal IP addresses or private network details in the message or URL",
       "must_include": [
@@ -71,7 +83,10 @@
     "name": "supabase_api_key_error",
     "description": "Find the Supabase API key configuration error",
     "difficulty": "easy",
-    "scenario": "sentry/investigate",
+    "env": {
+      "name": "sentry-agent"
+    },
+    "scenario": "investigate",
     "args": {
       "query": "Find errors about invalid Supabase API key in health check",
       "must_include": [
@@ -86,7 +101,10 @@
     "name": "duplicate_screenshot_upload",
     "description": "Find the 409 Duplicate error for screenshot uploads",
     "difficulty": "easy",
-    "scenario": "sentry/investigate",
+    "env": {
+      "name": "sentry-agent"
+    },
+    "scenario": "investigate",
     "args": {
       "query": "Find errors about duplicate resource uploads in telemetry",
       "must_include": [
@@ -101,7 +119,10 @@
     "name": "aws_credential_failure",
     "description": "Find AWS security token invalid errors in cron jobs",
     "difficulty": "medium",
-    "scenario": "sentry/investigate",
+    "env": {
+      "name": "sentry-agent"
+    },
+    "scenario": "investigate",
     "args": {
       "query": "Find AWS credential or security token errors in background workers",
       "must_include": [
@@ -116,7 +137,10 @@
     "name": "websocket_1006_investigation",
     "description": "Investigate the WebSocket 1006 errors and identify user impact",
     "difficulty": "medium",
-    "scenario": "sentry/investigate",
+    "env": {
+      "name": "sentry-agent"
+    },
+    "scenario": "investigate",
     "args": {
       "query": "Investigate WebSocket connection closed with code 1006 on /global/live. How many users are affected?",
       "must_include": [
@@ -130,7 +154,10 @@
     "name": "compare_schema_errors",
     "description": "Compare the two schema validation issues and identify which is older",
     "difficulty": "hard",
-    "scenario": "sentry/investigate",
+    "env": {
+      "name": "sentry-agent"
+    },
+    "scenario": "investigate",
     "args": {
       "query": "Compare INFERENCE-HUD-AI-21 and INFERENCE-HUD-AI-1R. Which issue has been around longer and which affects more users?",
       "must_include": [
@@ -145,7 +172,10 @@
     "name": "highest_occurrence_issue",
     "description": "Find the issue with the most occurrences",
     "difficulty": "medium",
-    "scenario": "sentry/investigate",
+    "env": {
+      "name": "sentry-agent"
+    },
+    "scenario": "investigate",
     "args": {
       "query": "What is the issue with the highest number of occurrences in the last month?",
       "must_include": [
@@ -156,4 +186,3 @@
     }
   }
 ]
-
