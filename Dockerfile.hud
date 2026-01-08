@@ -1,0 +1,60 @@
+# Ops Diagnostics Environment
+# 
+# This Dockerfile builds an environment with access to:
+# - Sentry MCP server (via npx @sentry/mcp-server)
+# - Supabase MCP server (via npx @supabase/mcp-server-supabase)
+# - Custom Railway tools (GraphQL API)
+# - Custom kubectl tools (CLI wrapper)
+#
+# Required environment variables (set in HUD dashboard):
+# - SENTRY_AUTH_TOKEN
+# - OPENAI_API_KEY (for Sentry AI-powered search)
+# - SUPABASE_ACCESS_TOKEN
+# - SUPABASE_PROJECT_REF (optional, scopes to specific project)
+# - RAILWAY_API_TOKEN
+# - KUBECONFIG_B64 (base64-encoded kubeconfig)
+
+FROM python:3.11-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    gnupg \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js (for npx and MCP servers)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install kubectl
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+    && chmod +x kubectl \
+    && mv kubectl /usr/local/bin/
+
+# Install uv for faster Python package management
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Set working directory
+WORKDIR /app
+
+# Copy project files
+COPY pyproject.toml uv.lock ./
+COPY environments/ ./environments/
+COPY orchestrator.py ./
+COPY tasks.json ./
+
+# Install Python dependencies
+RUN uv sync --frozen 2>/dev/null || uv pip install --system -e .
+
+# Set Python path
+ENV PYTHONPATH=/app
+ENV PATH=/app/.venv/bin:$PATH
+
+# Pre-install MCP servers globally so they're cached in the image
+RUN npm install -g @supabase/mcp-server-supabase@latest @sentry/mcp-server@latest || true
+
+# Entry point - run the Sentry environment as the main MCP server
+# For orchestrator mode, override CMD with: python orchestrator.py "your query"
+CMD ["hud", "dev", "environments.sentry:sentry_env", "--stdio"]
