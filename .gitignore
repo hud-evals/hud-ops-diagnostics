@@ -30,6 +30,7 @@ Thumbs.db
 
 # Logs
 *.log
+AGENT_LOG.md
 
 # Lock files (keep uv.lock for reproducibility)
 # uv.lock
