@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gnupg \
     ca-certificates \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js (for npx and MCP servers)
