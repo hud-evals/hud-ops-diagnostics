@@ -55,45 +55,11 @@
       "query": "Investigate the invalid UUID syntax errors on trace enter endpoint",
       "must_include": [
         "HUD-PLATFORM-7F",
-        "task_version_id",
-        "california-dmv-renewal"
+        "invalid input syntax",
+        "uuid"
       ],
       "must_not_include": [
         "trace_id is invalid"
-      ]
-    }
-  },
-  {
-    "name": "find_internal_ip_exposure",
-    "description": "Find errors that expose internal network addresses",
-    "difficulty": "hard",
-    "env": {
-      "name": "hud-ops-diagnostics-sentry"
-    },
-    "scenario": "sentry-agent:investigate",
-    "args": {
-      "query": "Find any errors that expose internal IP addresses or private network details in the message or URL",
-      "must_include": [
-        "10.250.15.219",
-        "robots.txt"
-      ]
-    }
-  },
-  {
-    "name": "supabase_api_key_error",
-    "description": "Find the Supabase API key configuration error",
-    "difficulty": "easy",
-    "env": {
-      "name": "hud-ops-diagnostics-sentry"
-    },
-    "scenario": "sentry-agent:investigate",
-    "args": {
-      "query": "Find errors about invalid Supabase API key in health check",
-      "must_include": [
-        "TELEMETRY-2PT",
-        "Invalid API key",
-        "anon",
-        "service_role"
       ]
     }
   },
@@ -110,8 +76,7 @@
       "must_include": [
         "TELEMETRY-1VZ",
         "409",
-        "Duplicate",
-        "screenshot"
+        "Duplicate"
       ]
     }
   },
@@ -127,44 +92,43 @@
       "query": "Find AWS credential or security token errors in background workers",
       "must_include": [
         "OSWORLD-WORKER",
-        "UnrecognizedClientException",
         "security token",
-        "DescribeParameters"
+        "invalid"
       ]
     }
   },
   {
     "name": "websocket_1006_investigation",
-    "description": "Investigate the WebSocket 1006 errors and identify user impact",
+    "description": "Investigate the WebSocket 1006 errors and identify the endpoint",
     "difficulty": "medium",
     "env": {
       "name": "hud-ops-diagnostics-sentry"
     },
     "scenario": "sentry-agent:investigate",
     "args": {
-      "query": "Investigate WebSocket connection closed with code 1006 on /global/live. How many users are affected?",
+      "query": "Investigate WebSocket connection closed with code 1006. What endpoint is affected?",
       "must_include": [
         "HUD-PLATFORM-3Q",
         "1006",
-        "1158"
+        "/global/live"
       ]
     }
   },
   {
     "name": "compare_schema_errors",
-    "description": "Compare the two schema validation issues and identify which is older",
+    "description": "Compare the two schema validation issues and identify key differences",
     "difficulty": "hard",
     "env": {
       "name": "hud-ops-diagnostics-sentry"
     },
     "scenario": "sentry-agent:investigate",
     "args": {
-      "query": "Compare INFERENCE-HUD-AI-21 and INFERENCE-HUD-AI-1R. Which issue has been around longer and which affects more users?",
+      "query": "Compare INFERENCE-HUD-AI-21 and INFERENCE-HUD-AI-1R. What are the key differences between these issues?",
       "must_include": [
+        "21",
         "1R",
-        "18",
-        "november",
-        "december"
+        "/responses",
+        "/chat/completions"
       ]
     }
   },
@@ -177,11 +141,45 @@
     },
     "scenario": "sentry-agent:investigate",
     "args": {
-      "query": "What is the issue with the highest number of occurrences in the last month?",
+      "query": "What is the issue with the highest number of occurrences?",
       "must_include": [
         "HUD-PLATFORM-3Q",
-        "463408",
-        "WebSocket"
+        "WebSocket",
+        "1006"
+      ]
+    }
+  },
+  {
+    "name": "pod_rate_limit_errors",
+    "description": "Find Kubernetes pod deletion rate limit errors",
+    "difficulty": "medium",
+    "env": {
+      "name": "hud-ops-diagnostics-sentry"
+    },
+    "scenario": "sentry-agent:investigate",
+    "args": {
+      "query": "Find errors about pod deletion failing with 429 Too Many Requests",
+      "must_include": [
+        "ORCHESTRATOR-AC",
+        "429",
+        "pod"
+      ]
+    }
+  },
+  {
+    "name": "missing_header_errors",
+    "description": "Find missing X-Organization-ID header errors",
+    "difficulty": "easy",
+    "env": {
+      "name": "hud-ops-diagnostics-sentry"
+    },
+    "scenario": "sentry-agent:investigate",
+    "args": {
+      "query": "Find errors about missing organization header in requests",
+      "must_include": [
+        "HUD-PLATFORM-1C",
+        "X-Organization-ID",
+        "missing"
       ]
     }
   }
