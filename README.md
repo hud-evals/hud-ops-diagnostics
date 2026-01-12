@@ -5,14 +5,16 @@ Hierarchical agent for diagnosing issues across multiple services using speciali
 ## Architecture
 
 ```
-orchestrator.py          # Main CLI - coordinates subagents
-├── agents/
-│   ├── sentry_agent.py      # Error monitoring (Sentry MCP)
-│   ├── supabase_agent.py    # Database/auth (Supabase MCP)
-│   ├── railway_agent.py     # Deployments (Railway MCP)
-│   └── kubectl_agent.py     # Kubernetes (custom tools)
-└── tools/
-    └── kubectl.py           # kubectl CLI wrappers
+orchestrator.py              # Main CLI - coordinates subagents
+├── environments/
+│   ├── sentry.py            # Error monitoring (Sentry MCP)
+│   ├── supabase.py          # Database/auth (Supabase MCP)
+│   ├── railway.py           # Deployments (Railway MCP)
+│   ├── kubectl.py           # Kubernetes (custom tools)
+│   ├── hud_docs.py          # HUD SDK docs (HUD Docs MCP)
+│   └── github.py            # Code/issues/PRs (GitHub MCP)
+├── tasks.json               # Eval tasks for subagents
+└── run_evals.py             # Run evaluations
 ```
 
 ## Setup
@@ -38,14 +40,26 @@ SUPABASE_PROJECT_REF=your_project_ref
 # Railway - https://railway.app/account/tokens
 RAILWAY_API_TOKEN=...
 
+# GitHub - https://github.com/settings/tokens
+GITHUB_PAT=ghp_...
+
 # kubectl - base64 encoded kubeconfig
 KUBECONFIG_BASE64=...
+
+# OpenAI (for agents)
+OPENAI_API_KEY=sk-...
 ```
 
 ### 3. Test connections
 
 ```bash
 python orchestrator.py --test
+```
+
+Run with actual queries through each subagent:
+
+```bash
+python orchestrator.py --test --run-queries
 ```
 
 ## Usage
@@ -72,35 +86,96 @@ python orchestrator.py "Slow queries" --model gpt-4o
 
 1. **Orchestrator** receives your query
 2. Decides which **subagents** to call based on the issue
-3. Each subagent uses its specialized tools (Sentry, Supabase, etc.)
+3. Each subagent uses its specialized MCP tools (Sentry, Supabase, etc.)
 4. Orchestrator correlates findings and provides diagnosis
+
+### Architecture Pattern
+
+Each subagent is a HUD Environment with:
+- MCP server connection (real tools)
+- A v5 scenario for investigation queries
+- Optional eval-only parameters for scoring
+
+```python
+@sentry_env.scenario("investigate")
+async def investigate_issue(query: str, must_include: list[str] | None = None):
+    prompt = f"Investigate: {query}"
+    response = yield prompt
+    # Score based on must_include
+    yield score
+```
 
 ### Benefits
 
-- **4 tools** instead of 60+ (reduced cognitive load)
-- **Specialized agents** for each domain
+- **6 subagents** instead of 60+ tools (reduced cognitive load)
+- **Specialized agents** for each domain (Sentry, Supabase, Railway, kubectl, HUD Docs, GitHub)
 - **Testable** - each subagent runs independently
 - **Composable** - easy to add/remove services
+- **READ-ONLY** - subagents investigate but don't make changes
+
+## Running Evaluations
+
+The `tasks.json` file contains evaluation tasks for the Sentry subagent:
+
+```bash
+# Run all tasks
+python run_evals.py
+
+# Run specific task
+python run_evals.py --task find_responses_schema_error
+```
+
+Tasks test that agents can:
+- Find specific errors by type
+- Navigate complex Sentry data
+- Avoid common confusion (e.g., similar issue IDs)
 
 ## Testing individual subagents
 
 ```bash
-python agents/sentry_agent.py
-python agents/supabase_agent.py
-python agents/railway_agent.py
-python agents/kubectl_agent.py
+python environments/sentry.py
+python environments/supabase.py
+python environments/railway.py
+python environments/kubectl.py
+python environments/hud_docs.py
+python environments/github.py
 ```
 
-## Available Tools (per subagent)
+## Available Subagents
 
-### Sentry (via MCP)
-`whoami`, `find_organizations`, `find_projects`, `search_issues`, `get_issue_details`, `analyze_issue_with_seer`, ...
+### Sentry (`investigate_sentry`)
+Error monitoring and issue investigation.
+- `search_issues` - Find issues by query
+- `get_issue_details` - Full issue details
+- `analyze_issue_with_seer` - AI root cause analysis
+- `find_organizations`, `find_projects`, etc.
 
-### Supabase (via MCP)
-`list_tables`, `execute_sql`, `get_logs`, `get_advisors`, `list_edge_functions`, ...
+### Supabase (`investigate_supabase`)
+Database and auth investigation.
+- `list_tables`, `execute_sql`
+- `get_logs`, `get_advisors`
+- `list_edge_functions`, etc.
 
-### Railway (via MCP)
-`list-projects`, `list-services`, `list-deployments`, `get-logs`, `deploy`, ...
+### Railway (`investigate_railway`)
+Deployment status and logs.
+- `list-projects`, `list-services`
+- `list-deployments`, `get-logs`
+- `deploy`, etc.
 
-### kubectl (custom)
-`kubectl_get_pods`, `kubectl_get_logs`, `kubectl_describe_pod`, `kubectl_get_events`, ...
+### kubectl (`investigate_kubernetes`)
+Kubernetes cluster health.
+- `kubectl_get_pods`, `kubectl_get_logs`
+- `kubectl_describe_pod`, `kubectl_get_events`, etc.
+
+### HUD Docs (`search_hud_docs`)
+HUD SDK documentation and architecture.
+- `SearchHud` - Search docs for concepts, examples
+- Understands v4 tasks vs v5 scenarios
+- Explains MCP protocol, environments, etc.
+
+### GitHub (`investigate_github`)
+Code, issues, PRs, and workflows.
+- Search code across repositories
+- Get issues and pull requests
+- Check GitHub Actions workflow runs
+- Repository and file browsing
