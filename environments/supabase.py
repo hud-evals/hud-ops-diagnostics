@@ -89,6 +89,12 @@ Use the available Supabase tools to:
 3. Check logs (auth, postgres, edge-function) if relevant
 4. Review security advisors for vulnerabilities
 
+**HUD Schema Quick Reference:**
+- `task_runs` - Individual task execution records (status, reward, created_at, etc.)
+- `task_runs->telemetry column` - Full telemetry/trace data for each task run (tool calls, events)
+- `runs` - Alias for `jobs` table
+- `users`, `api_keys`, `transactions` - User and billing data
+
 Provide a summary with:
 - What you found in the database/logs
 - Any issues or anomalies

@@ -22,6 +22,7 @@ if sys.platform == "win32":
 
 from dotenv import load_dotenv
 from rich.console import Console
+from rich.errors import MarkupError
 from rich.live import Live
 from rich.panel import Panel
 from rich.markdown import Markdown
@@ -62,7 +63,7 @@ async def run_diagnosis(prompt: str, model: str = "gpt-4o-mini"):
     import hud
     
     # Import subagent environments
-    from environments import sentry_env, supabase_env, railway_env, kubectl_env
+    from environments import sentry_env, supabase_env, railway_env, kubectl_env, hud_docs_env, github_env
     
     # Create orchestrator
     orchestrator = Environment(name="ops-orchestrator")
@@ -75,6 +76,8 @@ async def run_diagnosis(prompt: str, model: str = "gpt-4o-mini"):
         ("investigate_supabase", supabase_env, "Investigate database/auth in Supabase"),
         ("investigate_railway", railway_env, "Investigate deployments in Railway"),
         ("investigate_kubernetes", kubectl_env, "Investigate Kubernetes cluster"),
+        ("search_hud_docs", hud_docs_env, "Search HUD documentation for architecture, v5 scenarios, SDK concepts"),
+        ("investigate_github", github_env, "Search code, issues, PRs, and workflows on GitHub"),
     ]
     
     for name, env, desc in subagents:
@@ -98,6 +101,8 @@ async def run_diagnosis(prompt: str, model: str = "gpt-4o-mini"):
 - **investigate_supabase**: Query database, check auth logs, analyze schema
 - **investigate_railway**: Check deployments, get logs, manage services
 - **investigate_kubernetes**: Check pod status, get logs, analyze cluster health
+- **search_hud_docs**: Search HUD SDK documentation for architecture, v5 scenarios, task formats, etc.
+- **investigate_github**: Search code, issues, PRs, and GitHub Actions workflows
 
 **Issue to diagnose:**
 {query}
@@ -108,7 +113,14 @@ async def run_diagnosis(prompt: str, model: str = "gpt-4o-mini"):
 1. Use the appropriate subagent tools to investigate
 2. Each tool takes a "query" parameter - describe what to look for
 3. Correlate findings across services
-4. Provide a comprehensive diagnosis with recommended actions for humans to take
+4. If the issue involves HUD concepts (tasks, scenarios, rewards, evaluate_tool), use search_hud_docs to understand the expected behavior
+5. If you need to check source code or recent changes, use investigate_github
+6. Provide a comprehensive diagnosis with recommended actions for humans to take
+
+**HUD-Specific Context:**
+- v4 Tasks use `setup_tool` and `evaluate_tool` for scoring
+- v5 Scenarios use `@env.scenario()` with two yields (prompt, then reward via read_resource)
+- If `evaluate_tool` is NULL but using v5 scenarios, check if `read_resource` is being called
 
 Be systematic. Call multiple subagents if needed."""
         
@@ -125,7 +137,16 @@ Be systematic. Call multiple subagents if needed."""
     with console.status("[bold green]Orchestrator thinking...", spinner="dots"):
         async with hud.eval(task) as ctx:
             agent = create_agent(model)
-            result = await agent.run(ctx, max_steps=20)
+            try:
+                result = await agent.run(ctx, max_steps=20)
+            except MarkupError as e:
+                # Workaround for Rich markup errors from SDK error handling
+                console.print(f"\n[red]Agent error (markup issue): {e!r}[/red]")
+                result = type("Result", (), {"content": None})()
+            except Exception as e:
+                # Catch any other error and display safely
+                console.print(f"\n[red]Agent error: {type(e).__name__}: {e!s}[/red]")
+                result = type("Result", (), {"content": None})()
     
     # Display result
     console.print()
@@ -148,7 +169,7 @@ async def run_incident(description: str, severity: str, model: str):
     from hud.agents import create_agent
     import hud
     
-    from environments import sentry_env, supabase_env, railway_env, kubectl_env
+    from environments import sentry_env, supabase_env, railway_env, kubectl_env, hud_docs_env, github_env
     
     orchestrator = Environment(name="ops-orchestrator")
     
@@ -159,6 +180,8 @@ async def run_incident(description: str, severity: str, model: str):
         ("investigate_supabase", supabase_env),
         ("investigate_railway", railway_env),
         ("investigate_kubernetes", kubectl_env),
+        ("search_hud_docs", hud_docs_env),
+        ("investigate_github", github_env),
     ]:
         tool = AgentTool(env("investigate"), model=model, name=name)
         orchestrator.add_tool(tool.mcp)
@@ -178,12 +201,15 @@ You have specialized READ-ONLY subagents:
 - investigate_supabase: Database issues
 - investigate_railway: Deployment status
 - investigate_kubernetes: Cluster health
+- search_hud_docs: HUD SDK documentation (for understanding expected behavior)
+- investigate_github: Code, issues, PRs, and GitHub Actions
 
 **Priority actions:**
 1. Quickly assess scope
-2. Identify root cause
-3. Suggest immediate mitigation (for humans to execute)
-4. Document findings
+2. Identify root cause (use search_hud_docs if the issue involves HUD concepts)
+3. Check recent code changes with investigate_github if deployment-related
+4. Suggest immediate mitigation (for humans to execute)
+5. Document findings
 
 Note: You cannot make changes. Provide actionable recommendations.
 Time is critical. Be concise."""
@@ -206,7 +232,14 @@ Time is critical. Be concise."""
     with console.status("[bold red]Incident response in progress...", spinner="dots"):
         async with hud.eval(task) as ctx:
             agent = create_agent(model)
-            result = await agent.run(ctx, max_steps=20)
+            try:
+                result = await agent.run(ctx, max_steps=20)
+            except MarkupError as e:
+                console.print(f"\n[red]Agent error (markup issue): {e!r}[/red]")
+                result = type("Result", (), {"content": None})()
+            except Exception as e:
+                console.print(f"\n[red]Agent error: {type(e).__name__}: {e!s}[/red]")
+                result = type("Result", (), {"content": None})()
     
     console.print()
     if result.content:
@@ -225,13 +258,15 @@ async def test_subagents(run_queries: bool = False, model: str = "gpt-4o-mini"):
     from hud.agents import create_agent
     import hud
     
-    from environments import sentry_env, supabase_env, railway_env, kubectl_env
+    from environments import sentry_env, supabase_env, railway_env, kubectl_env, hud_docs_env, github_env
     
     subagents = [
         ("Sentry", sentry_env, "List recent errors or issues"),
         ("Supabase", supabase_env, "List database tables"),
         ("Railway", railway_env, "List projects and their status"),
         ("kubectl", kubectl_env, "List nodes in the cluster"),
+        ("HUD Docs", hud_docs_env, "What is the difference between v4 tasks and v5 scenarios?"),
+        ("GitHub", github_env, "Search for recent commits in hud-evals/hud-python"),
     ]
     
     console.print("[bold]Testing subagent connections...[/bold]\n")

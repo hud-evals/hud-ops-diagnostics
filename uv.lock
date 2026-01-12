@@ -896,7 +896,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "httpx", specifier = ">=0.27.0" },
-    { name = "hud-python", extras = ["agents"], specifier = "==0.5.3" },
+    { name = "hud-python", extras = ["agents"], editable = "../../SDK/hud-sdk" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "rich", specifier = ">=13.0.0" },
@@ -910,8 +910,8 @@ dev = [
 
 [[package]]
 name = "hud-python"
-version = "0.5.3"
-source = { registry = "https://pypi.org/simple" }
+version = "0.5.5"
+source = { editable = "../../SDK/hud-sdk" }
 dependencies = [
     { name = "blessed" },
     { name = "fastmcp" },
@@ -929,10 +929,6 @@ dependencies = [
     { name = "typer" },
     { name = "watchfiles" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/61/01/1c7148ce1ab04a313219f200341e511bd1df45bc46d5e1a5e95e778c44ce/hud_python-0.5.3.tar.gz", hash = "sha256:616d4756f280ce14ec05b373676094b9483c45e1748ec48dd9e3a420b34ea46a", size = 455469, upload-time = "2026-01-09T01:50:56.43Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f7/c9/3cc43a578d5ffb1dfd38aca3f06182785507cab8a5000979322d37154cbb/hud_python-0.5.3-py3-none-any.whl", hash = "sha256:f3c3b488b150d35ca95e33f1f3fee8e7e1bd0fc950532e729fc04d6b9260e2b3", size = 611690, upload-time = "2026-01-09T01:50:54.6Z" },
-]
 
 [package.optional-dependencies]
 agents = [
@@ -945,6 +941,52 @@ agents = [
     { name = "pillow" },
     { name = "tornado" },
 ]
+
+[package.metadata]
+requires-dist = [
+    { name = "anthropic", marker = "extra == 'agents'", specifier = ">=0.75" },
+    { name = "anthropic", extras = ["bedrock"], marker = "extra == 'bedrock'", specifier = ">=0.75" },
+    { name = "blessed", specifier = ">=1.20.0" },
+    { name = "datasets", marker = "extra == 'agents'", specifier = ">=2.14.0" },
+    { name = "dotenv", marker = "extra == 'dev'", specifier = ">=0.9.9" },
+    { name = "fastmcp", specifier = "==2.13.3" },
+    { name = "google-adk", marker = "extra == 'dev'" },
+    { name = "google-genai", marker = "extra == 'agents'" },
+    { name = "httpx", specifier = ">=0.23.0,<1" },
+    { name = "hud-python", extras = ["agents"], marker = "extra == 'agent'" },
+    { name = "hud-python", extras = ["agents"], marker = "extra == 'dev'" },
+    { name = "ipykernel", marker = "extra == 'dev'" },
+    { name = "ipython", marker = "extra == 'dev'", specifier = "<9" },
+    { name = "jupyter-client", marker = "extra == 'dev'" },
+    { name = "jupyter-core", marker = "extra == 'dev'" },
+    { name = "langchain", marker = "extra == 'agents'", specifier = ">=1.1.0" },
+    { name = "llama-index-core", marker = "extra == 'dev'" },
+    { name = "mcp", specifier = ">1.21.1,<1.23" },
+    { name = "mcp-use", marker = "extra == 'agents'", specifier = "==1.5.0" },
+    { name = "openai", specifier = ">=2.8.1" },
+    { name = "openai-agents", marker = "extra == 'agents'" },
+    { name = "packaging", specifier = ">=21.0" },
+    { name = "pillow", marker = "extra == 'agents'", specifier = ">=11.1.0" },
+    { name = "playwright", marker = "extra == 'dev'" },
+    { name = "prompt-toolkit", specifier = "==3.0.51" },
+    { name = "pyautogui", marker = "extra == 'dev'", specifier = ">=0.9.54" },
+    { name = "pydantic", specifier = ">=2.6,<3" },
+    { name = "pydantic-settings", specifier = ">=2.2,<3" },
+    { name = "pyright", marker = "extra == 'dev'", specifier = "==1.1.407" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.1.1,<9" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'" },
+    { name = "pytest-cov", marker = "extra == 'dev'" },
+    { name = "pytest-mock", marker = "extra == 'dev'" },
+    { name = "questionary", specifier = "==2.1.0" },
+    { name = "rich", specifier = ">=13.0.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.11.8" },
+    { name = "scarf-sdk", specifier = ">=0.1.0" },
+    { name = "toml", specifier = ">=0.10.2" },
+    { name = "tornado", marker = "extra == 'agents'", specifier = ">=6.5.2" },
+    { name = "typer", specifier = ">=0.9.0" },
+    { name = "watchfiles", specifier = ">=0.21.0" },
+]
+provides-extras = ["agents", "bedrock", "dev", "agent"]
 
 [[package]]
 name = "huggingface-hub"
