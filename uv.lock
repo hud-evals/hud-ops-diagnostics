@@ -910,7 +910,7 @@ dev = [
 
 [[package]]
 name = "hud-python"
-version = "0.5.5"
+version = "0.5.7"
 source = { editable = "../../SDK/hud-sdk" }
 dependencies = [
     { name = "blessed" },
