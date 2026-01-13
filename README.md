@@ -5,7 +5,7 @@ Hierarchical agent for diagnosing issues across multiple services using speciali
 ## Architecture
 
 ```
-orchestrator.py              # Main CLI - coordinates subagents
+orchestrator.py              # Main CLI + orch_env (module-level)
 ├── environments/
 │   ├── sentry.py            # Error monitoring (Sentry MCP)
 │   ├── supabase.py          # Database/auth (Supabase MCP)
@@ -15,6 +15,25 @@ orchestrator.py              # Main CLI - coordinates subagents
 │   └── github.py            # Code/issues/PRs (GitHub MCP)
 ├── tasks.json               # Eval tasks for subagents
 └── run_evals.py             # Run evaluations
+```
+
+## Docker Modes
+
+The container supports two runtime modes via the `AGENT_MODE` environment variable:
+
+| Mode | Command | Description |
+|------|---------|-------------|
+| `sentry` (default) | `hud dev environments.sentry:sentry_env` | Single Sentry subagent |
+| `orch` | `hud dev orchestrator:orch_env` | Full orchestrator with all 6 subagents |
+
+### Run in Sentry mode (default)
+```bash
+docker run -e SENTRY_AUTH_TOKEN=... hud-ops-diagnostics
+```
+
+### Run in Orchestrator mode
+```bash
+docker run -e AGENT_MODE=orch -e SENTRY_AUTH_TOKEN=... -e OPENAI_API_KEY=... hud-ops-diagnostics
 ```
 
 ## Setup
