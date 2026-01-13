@@ -56,6 +56,13 @@ ENV PATH=/app/.venv/bin:$PATH
 # Pre-install MCP servers globally so they're cached in the image
 RUN npm install -g @supabase/mcp-server-supabase@latest @sentry/mcp-server@latest || true
 
-# Entry point - run the Sentry environment as the main MCP server
-# For orchestrator mode, override CMD with: python orchestrator.py "your query"
-CMD ["hud", "dev", "environments.sentry:sentry_env", "--stdio"]
+# Environment variable to select which environment to run
+# - sentry: Run the Sentry subagent environment (default)
+# - orch: Run the orchestrator environment with all subagents
+# Override at runtime: docker run -e AGENT_MODE=orch ...
+ENV AGENT_MODE=sentry
+
+# Entry point - select environment based on AGENT_MODE
+# sentry: hud dev environments.sentry:sentry_env --stdio
+# orch: hud dev orchestrator:orch_env --stdio
+CMD ["sh", "-c", "if [ \"$AGENT_MODE\" = \"orch\" ]; then hud dev orchestrator:orch_env --stdio; else hud dev environments.sentry:sentry_env --stdio; fi"]

@@ -44,58 +44,49 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 console = Console(force_terminal=True, legacy_windows=False)
 
+# =============================================================================
+# ORCHESTRATOR ENVIRONMENT (module-level for hud dev)
+# =============================================================================
 
-def print_header():
-    console.print()
-    console.print(Panel.fit(
-        "[bold blue]Ops Diagnostics Orchestrator[/bold blue]\n"
-        "[dim]Hierarchical agent with specialized subagents[/dim]",
-        border_style="blue"
-    ))
-    console.print()
+from hud import Environment
+from hud.tools import AgentTool
+
+# Import subagent environments
+from environments import sentry_env, supabase_env, railway_env, kubectl_env, hud_docs_env, github_env
+
+orch_env = Environment(name="ops-orchestrator")
+
+# Get model from env or default
+_orch_model = os.getenv("ORCH_MODEL", "gpt-4o-mini")
+
+# Add subagent tools
+_subagents = [
+    ("investigate_sentry", sentry_env, "Investigate errors in Sentry"),
+    ("investigate_supabase", supabase_env, "Investigate database/auth in Supabase"),
+    ("investigate_railway", railway_env, "Investigate deployments in Railway"),
+    ("investigate_kubernetes", kubectl_env, "Investigate Kubernetes cluster"),
+    ("search_hud_docs", hud_docs_env, "Search HUD documentation for architecture, v5 scenarios, SDK concepts"),
+    ("investigate_github", github_env, "Search code, issues, PRs, and workflows on GitHub"),
+]
+
+for _name, _env, _desc in _subagents:
+    _tool = AgentTool(
+        _env("investigate"),
+        model=_orch_model,
+        name=_name,
+        description=_desc,
+    )
+    orch_env.add_tool(_tool.mcp)
 
 
-async def run_diagnosis(prompt: str, model: str = "gpt-4o-mini"):
-    """Run the orchestrator with the given prompt."""
-    from hud import Environment
-    from hud.tools import AgentTool
-    from hud.agents import create_agent
-    import hud
+@orch_env.scenario("diagnose")
+async def orch_diagnose(query: str) -> Any:
+    """Diagnose an ops issue using specialized subagents.
     
-    # Import subagent environments
-    from environments import sentry_env, supabase_env, railway_env, kubectl_env, hud_docs_env, github_env
-    
-    # Create orchestrator
-    orchestrator = Environment(name="ops-orchestrator")
-    
-    # Create and add subagent tools
-    console.print("[dim]Setting up subagents...[/dim]")
-    
-    subagents = [
-        ("investigate_sentry", sentry_env, "Investigate errors in Sentry"),
-        ("investigate_supabase", supabase_env, "Investigate database/auth in Supabase"),
-        ("investigate_railway", railway_env, "Investigate deployments in Railway"),
-        ("investigate_kubernetes", kubectl_env, "Investigate Kubernetes cluster"),
-        ("search_hud_docs", hud_docs_env, "Search HUD documentation for architecture, v5 scenarios, SDK concepts"),
-        ("investigate_github", github_env, "Search code, issues, PRs, and workflows on GitHub"),
-    ]
-    
-    for name, env, desc in subagents:
-        tool = AgentTool(
-            env("investigate"),
-            model=model,
-            name=name,
-            description=desc,
-        )
-        orchestrator.add_tool(tool.mcp)
-        console.print(f"  [green]+[/green] {name}")
-    
-    console.print()
-    
-    # Define the orchestrator scenario inline
-    @orchestrator.scenario("diagnose")
-    async def diagnose(query: str) -> Any:
-        system_prompt = f"""You are an ops diagnostics orchestrator with specialized subagents:
+    Args:
+        query: The issue to diagnose (e.g., "Users report 500 errors on login")
+    """
+    system_prompt = f"""You are an ops diagnostics orchestrator with specialized subagents:
 
 - **investigate_sentry**: Search for errors and analyze issues in Sentry
 - **investigate_supabase**: Query database, check auth logs, analyze schema
@@ -123,12 +114,72 @@ async def run_diagnosis(prompt: str, model: str = "gpt-4o-mini"):
 - If `evaluate_tool` is NULL but using v5 scenarios, check if `read_resource` is being called
 
 Be systematic. Call multiple subagents if needed."""
-        
-        response = yield system_prompt
-        yield 1.0 if response else 0.0
     
-    # Create task
-    task = orchestrator("diagnose", query=prompt)
+    response = yield system_prompt
+    yield 1.0 if response else 0.0
+
+
+@orch_env.scenario("incident")
+async def orch_incident(desc: str, sev: str = "high") -> Any:
+    """Handle an incident using specialized subagents.
+    
+    Args:
+        desc: Description of the incident
+        sev: Severity level (low, medium, high, critical)
+    """
+    prompt = f"""*** INCIDENT RESPONSE (READ-ONLY INVESTIGATION) ***
+
+**Severity:** {sev.upper()}
+**Description:** {desc}
+
+You have specialized READ-ONLY subagents:
+- investigate_sentry: Error analysis
+- investigate_supabase: Database issues
+- investigate_railway: Deployment status
+- investigate_kubernetes: Cluster health
+- search_hud_docs: HUD SDK documentation (for understanding expected behavior)
+- investigate_github: Code, issues, PRs, and GitHub Actions
+
+**Priority actions:**
+1. Quickly assess scope
+2. Identify root cause (use search_hud_docs if the issue involves HUD concepts)
+3. Check recent code changes with investigate_github if deployment-related
+4. Suggest immediate mitigation (for humans to execute)
+5. Document findings
+
+Note: You cannot make changes. Provide actionable recommendations.
+Time is critical. Be concise."""
+    
+    response = yield prompt
+    yield 1.0 if response else 0.0
+
+
+# =============================================================================
+# CLI FUNCTIONS
+# =============================================================================
+
+def print_header():
+    console.print()
+    console.print(Panel.fit(
+        "[bold blue]Ops Diagnostics Orchestrator[/bold blue]\n"
+        "[dim]Hierarchical agent with specialized subagents[/dim]",
+        border_style="blue"
+    ))
+    console.print()
+
+
+async def run_diagnosis(prompt: str, model: str = "gpt-4o-mini"):
+    """Run the orchestrator with the given prompt."""
+    from hud.agents import create_agent
+    import hud
+    
+    console.print("[dim]Using module-level orchestrator with subagents...[/dim]")
+    for name, _, desc in _subagents:
+        console.print(f"  [green]+[/green] {name}")
+    console.print()
+    
+    # Create task using module-level orch_env
+    task = orch_env("diagnose", query=prompt)
     
     # Run with agent
     console.print(Panel(prompt, title="[bold]Query[/bold]", border_style="yellow"))
@@ -164,60 +215,16 @@ Be systematic. Call multiple subagents if needed."""
 
 async def run_incident(description: str, severity: str, model: str):
     """Run incident response mode."""
-    from hud import Environment
-    from hud.tools import AgentTool
     from hud.agents import create_agent
     import hud
     
-    from environments import sentry_env, supabase_env, railway_env, kubectl_env, hud_docs_env, github_env
-    
-    orchestrator = Environment(name="ops-orchestrator")
-    
-    console.print("[dim]Setting up subagents for incident response...[/dim]")
-    
-    for name, env in [
-        ("investigate_sentry", sentry_env),
-        ("investigate_supabase", supabase_env),
-        ("investigate_railway", railway_env),
-        ("investigate_kubernetes", kubectl_env),
-        ("search_hud_docs", hud_docs_env),
-        ("investigate_github", github_env),
-    ]:
-        tool = AgentTool(env("investigate"), model=model, name=name)
-        orchestrator.add_tool(tool.mcp)
+    console.print("[dim]Using module-level orchestrator for incident response...[/dim]")
+    for name, _, _ in _subagents:
         console.print(f"  [green]+[/green] {name}")
-    
     console.print()
     
-    @orchestrator.scenario("incident")
-    async def incident(desc: str, sev: str) -> Any:
-        prompt = f"""*** INCIDENT RESPONSE (READ-ONLY INVESTIGATION) ***
-
-**Severity:** {sev.upper()}
-**Description:** {desc}
-
-You have specialized READ-ONLY subagents:
-- investigate_sentry: Error analysis
-- investigate_supabase: Database issues
-- investigate_railway: Deployment status
-- investigate_kubernetes: Cluster health
-- search_hud_docs: HUD SDK documentation (for understanding expected behavior)
-- investigate_github: Code, issues, PRs, and GitHub Actions
-
-**Priority actions:**
-1. Quickly assess scope
-2. Identify root cause (use search_hud_docs if the issue involves HUD concepts)
-3. Check recent code changes with investigate_github if deployment-related
-4. Suggest immediate mitigation (for humans to execute)
-5. Document findings
-
-Note: You cannot make changes. Provide actionable recommendations.
-Time is critical. Be concise."""
-        
-        response = yield prompt
-        yield 1.0 if response else 0.0
-    
-    task = orchestrator("incident", desc=description, sev=severity)
+    # Create task using module-level orch_env
+    task = orch_env("incident", desc=description, sev=severity)
     
     severity_colors = {"critical": "red", "high": "yellow", "medium": "blue", "low": "dim"}
     color = severity_colors.get(severity.lower(), "white")
