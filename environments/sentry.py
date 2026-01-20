@@ -102,22 +102,20 @@ Provide a detailed summary including:
         return
     
     response_lower = response.lower()
-    score = 0.0
+    score = 1.0
     
-    # Each required fact found = partial credit
+    # All required facts must be present for full credit
     if must_include:
-        matches = sum(1 for fact in must_include if fact.lower() in response_lower)
-        score = matches / len(must_include)
-    else:
-        # No specific requirements = full credit for any response
-        score = 1.0
+        all_found = all(fact.lower() in response_lower for fact in must_include)
+        score = 1.0 if all_found else 0.0
     
-    # Penalize common confusion/mistakes
-    if must_not_include:
-        mistakes = sum(1 for bad in must_not_include if bad.lower() in response_lower)
-        score -= 0.2 * mistakes
+    # Any mistake = fail
+    if must_not_include and score > 0:
+        has_mistake = any(bad.lower() in response_lower for bad in must_not_include)
+        if has_mistake:
+            score = 0.0
     
-    yield max(0.0, min(1.0, score))
+    yield score
 
 
 # =============================================================================

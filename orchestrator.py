@@ -51,24 +51,44 @@ console = Console(force_terminal=True, legacy_windows=False)
 from hud import Environment
 from hud.tools import AgentTool
 
-# Import subagent environments
-from environments import sentry_env, supabase_env, railway_env, kubectl_env, hud_docs_env, github_env
-
 orch_env = Environment(name="ops-orchestrator")
 
 # Get model from env or default
 _orch_model = os.getenv("ORCH_MODEL", "gpt-4o-mini")
 
-# Add subagent tools
-_subagents = [
-    ("investigate_sentry", sentry_env, "Investigate errors in Sentry"),
-    ("investigate_supabase", supabase_env, "Investigate database/auth in Supabase"),
-    ("investigate_railway", railway_env, "Investigate deployments in Railway"),
-    ("investigate_kubernetes", kubectl_env, "Investigate Kubernetes cluster"),
-    ("search_hud_docs", hud_docs_env, "Search HUD documentation for architecture, v5 scenarios, SDK concepts"),
-    ("investigate_github", github_env, "Search code, issues, PRs, and workflows on GitHub"),
+# Define subagents with their required env vars
+# Format: (tool_name, module_attr, description, required_env_vars)
+# required_env_vars: list of env var names - ANY of them must be present (OR logic)
+#                    None means always available (no env var required)
+_subagent_configs: list[tuple[str, str, str, list[str] | None]] = [
+    ("investigate_sentry", "sentry_env", "Investigate errors in Sentry", ["SENTRY_AUTH_TOKEN"]),
+    ("investigate_supabase", "supabase_env", "Investigate database/auth in Supabase", ["SUPABASE_ACCESS_TOKEN"]),
+    ("investigate_railway", "railway_env", "Investigate deployments in Railway", ["RAILWAY_API_TOKEN"]),
+    ("investigate_kubernetes", "kubectl_env", "Investigate Kubernetes cluster", ["KUBECONFIG_B64", "KUBECONFIG"]),
+    ("search_docs", "docs_env", "Search internal documentation for architecture, concepts, and guides", ["DOCS_MCP"]),
+    ("investigate_github", "github_env", "Search code, issues, PRs, and workflows on GitHub", ["GITHUB_PAT"]),
 ]
 
+# Build list of available subagents based on env vars
+_subagents: list[tuple[str, Environment, str]] = []
+_logger = logging.getLogger(__name__)
+
+for _name, _module_attr, _desc, _required_vars in _subagent_configs:
+    # Check if required env vars are present
+    if _required_vars is not None:
+        # Check if ANY of the required vars are set (OR logic)
+        has_env_var = any(os.getenv(var) for var in _required_vars)
+        if not has_env_var:
+            _logger.info("Skipping %s - missing env var(s): %s", _name, _required_vars)
+            continue
+    
+    # Import the environment lazily (only if env vars are present)
+    import environments
+    _env = getattr(environments, _module_attr)
+    _subagents.append((_name, _env, _desc))
+    _logger.info("Registered subagent: %s", _name)
+
+# Add the available subagent tools to the orchestrator
 for _name, _env, _desc in _subagents:
     _tool = AgentTool(
         _env("investigate"),
@@ -79,6 +99,17 @@ for _name, _env, _desc in _subagents:
     orch_env.add_tool(_tool.mcp)
 
 
+def _format_subagent_list(detailed: bool = True) -> str:
+    """Format the list of available subagents for prompts."""
+    if not _subagents:
+        return "No subagents available."
+    
+    if detailed:
+        return "\n".join(f"- **{name}**: {desc}" for name, _, desc in _subagents)
+    else:
+        return "\n".join(f"- {name}: {desc}" for name, _, desc in _subagents)
+
+
 @orch_env.scenario("diagnose")
 async def orch_diagnose(query: str) -> Any:
     """Diagnose an ops issue using specialized subagents.
@@ -86,14 +117,11 @@ async def orch_diagnose(query: str) -> Any:
     Args:
         query: The issue to diagnose (e.g., "Users report 500 errors on login")
     """
+    subagent_list = _format_subagent_list(detailed=True)
+    
     system_prompt = f"""You are an ops diagnostics orchestrator with specialized subagents:
 
-- **investigate_sentry**: Search for errors and analyze issues in Sentry
-- **investigate_supabase**: Query database, check auth logs, analyze schema
-- **investigate_railway**: Check deployments, get logs, manage services
-- **investigate_kubernetes**: Check pod status, get logs, analyze cluster health
-- **search_hud_docs**: Search HUD SDK documentation for architecture, v5 scenarios, task formats, etc.
-- **investigate_github**: Search code, issues, PRs, and GitHub Actions workflows
+{subagent_list}
 
 **Issue to diagnose:**
 {query}
@@ -104,14 +132,9 @@ async def orch_diagnose(query: str) -> Any:
 1. Use the appropriate subagent tools to investigate
 2. Each tool takes a "query" parameter - describe what to look for
 3. Correlate findings across services
-4. If the issue involves HUD concepts (tasks, scenarios, rewards, evaluate_tool), use search_hud_docs to understand the expected behavior
+4. If you need to understand expected behavior, use search_docs
 5. If you need to check source code or recent changes, use investigate_github
 6. Provide a comprehensive diagnosis with recommended actions for humans to take
-
-**HUD-Specific Context:**
-- v4 Tasks use `setup_tool` and `evaluate_tool` for scoring
-- v5 Scenarios use `@env.scenario()` with two yields (prompt, then reward via read_resource)
-- If `evaluate_tool` is NULL but using v5 scenarios, check if `read_resource` is being called
 
 Be systematic. Call multiple subagents if needed."""
     
@@ -127,22 +150,19 @@ async def orch_incident(desc: str, sev: str = "high") -> Any:
         desc: Description of the incident
         sev: Severity level (low, medium, high, critical)
     """
+    subagent_list = _format_subagent_list(detailed=False)
+    
     prompt = f"""*** INCIDENT RESPONSE (READ-ONLY INVESTIGATION) ***
 
 **Severity:** {sev.upper()}
 **Description:** {desc}
 
 You have specialized READ-ONLY subagents:
-- investigate_sentry: Error analysis
-- investigate_supabase: Database issues
-- investigate_railway: Deployment status
-- investigate_kubernetes: Cluster health
-- search_hud_docs: HUD SDK documentation (for understanding expected behavior)
-- investigate_github: Code, issues, PRs, and GitHub Actions
+{subagent_list}
 
 **Priority actions:**
 1. Quickly assess scope
-2. Identify root cause (use search_hud_docs if the issue involves HUD concepts)
+2. Identify root cause (use search_docs to understand expected behavior if needed)
 3. Check recent code changes with investigate_github if deployment-related
 4. Suggest immediate mitigation (for humans to execute)
 5. Document findings
@@ -174,7 +194,7 @@ async def run_diagnosis(prompt: str, model: str = "gpt-4o-mini"):
     import hud
     
     console.print("[dim]Using module-level orchestrator with subagents...[/dim]")
-    for name, _, desc in _subagents:
+    for name, _, _ in _subagents:
         console.print(f"  [green]+[/green] {name}")
     console.print()
     
@@ -260,25 +280,32 @@ async def run_incident(description: str, severity: str, model: str):
 
 
 async def test_subagents(run_queries: bool = False, model: str = "gpt-4o-mini"):
-    """Test that all subagents can connect and optionally run queries."""
+    """Test that all available subagents can connect and optionally run queries."""
     from hud.tools import AgentTool
-    from hud.agents import create_agent
-    import hud
     
-    from environments import sentry_env, supabase_env, railway_env, kubectl_env, hud_docs_env, github_env
+    # Test queries for each subagent type
+    test_queries = {
+        "investigate_sentry": "List recent errors or issues",
+        "investigate_supabase": "List database tables",
+        "investigate_railway": "List projects and their status",
+        "investigate_kubernetes": "List nodes in the cluster",
+        "search_docs": "How do I get started?",
+        "investigate_github": "Search for recent commits",
+    }
     
-    subagents = [
-        ("Sentry", sentry_env, "List recent errors or issues"),
-        ("Supabase", supabase_env, "List database tables"),
-        ("Railway", railway_env, "List projects and their status"),
-        ("kubectl", kubectl_env, "List nodes in the cluster"),
-        ("HUD Docs", hud_docs_env, "What is the difference between v4 tasks and v5 scenarios?"),
-        ("GitHub", github_env, "Search for recent commits in hud-evals/hud-python"),
-    ]
+    if not _subagents:
+        console.print("[yellow]No subagents available - check environment variables[/yellow]")
+        console.print("\nRequired env vars:")
+        for name, _, _, req_vars in _subagent_configs:
+            if req_vars:
+                console.print(f"  {name}: {' or '.join(req_vars)}")
+            else:
+                console.print(f"  {name}: (no env var required)")
+        return
     
-    console.print("[bold]Testing subagent connections...[/bold]\n")
+    console.print("[bold]Testing available subagent connections...[/bold]\n")
     
-    for name, env, _ in subagents:
+    for name, env, _ in _subagents:
         try:
             async with env:
                 tools = env.as_tools()
@@ -291,7 +318,8 @@ async def test_subagents(run_queries: bool = False, model: str = "gpt-4o-mini"):
     if run_queries:
         console.print("[bold]Running test queries through each subagent...[/bold]\n")
         
-        for name, env, query in subagents:
+        for name, env, _ in _subagents:
+            query = test_queries.get(name, "Describe your capabilities")
             console.print(Panel(f"[bold]{name}[/bold]: {query}", border_style="cyan"))
             
             try:
@@ -299,7 +327,7 @@ async def test_subagents(run_queries: bool = False, model: str = "gpt-4o-mini"):
                 tool = AgentTool(
                     env("investigate"),
                     model=model,
-                    name=f"test_{name.lower()}",
+                    name=f"test_{name}",
                 )
                 
                 # Run it

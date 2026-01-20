@@ -34,6 +34,7 @@ github_env = Environment(name="github-agent")
 
 # Connect to GitHub MCP server (HTTP transport via Copilot)
 github_pat = os.getenv("GITHUB_PAT")
+_github_tools_available = False
 
 if github_pat:
     logger.info("Connecting to GitHub MCP server...")
@@ -45,6 +46,7 @@ if github_pat:
             }
         }
     })
+    _github_tools_available = True
 else:
     logger.warning("GITHUB_PAT not set - GitHub tools unavailable")
     logger.warning("Get a PAT at: https://github.com/settings/tokens")
@@ -65,6 +67,18 @@ async def investigate_github(
         query: What to investigate (repo, issue, code search, workflow)
         expected_finding: (Eval only) Expected finding for scoring
     """
+    # Check if GitHub tools are available
+    if not _github_tools_available:
+        yield (
+            "ERROR: GitHub tools are not available. GITHUB_PAT environment variable is not set.\n\n"
+            "To enable GitHub investigation:\n"
+            "1. Create a Personal Access Token at: https://github.com/settings/tokens\n"
+            "2. Set the GITHUB_PAT environment variable\n\n"
+            f"Original query (not investigated): {query}"
+        )
+        yield 0.0
+        return
+
     prompt = f"""You are a GitHub specialist. Investigate the following:
 
 **Query:** {query}

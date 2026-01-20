@@ -6,13 +6,17 @@
 # - Custom Railway tools (GraphQL API)
 # - Custom kubectl tools (CLI wrapper)
 #
-# Required environment variables (set in HUD dashboard):
-# - SENTRY_AUTH_TOKEN
-# - OPENAI_API_KEY (for Sentry AI-powered search)
-# - SUPABASE_ACCESS_TOKEN
-# - SUPABASE_PROJECT_REF (optional, scopes to specific project)
-# - RAILWAY_API_TOKEN
-# - KUBECONFIG_B64 (base64-encoded kubeconfig)
+# Environment variables (set in HUD dashboard):
+# Subagents are auto-detected based on which env vars are set.
+#
+# - SENTRY_AUTH_TOKEN: Enables Sentry subagent
+# - OPENAI_API_KEY: (optional) Enables Sentry AI-powered search
+# - SUPABASE_ACCESS_TOKEN: Enables Supabase subagent
+# - SUPABASE_PROJECT_REF: (optional) Scopes Supabase to specific project
+# - RAILWAY_API_TOKEN: Enables Railway subagent
+# - KUBECONFIG_B64 or KUBECONFIG: Enables Kubernetes subagent
+# - DOCS_MCP: URL to internal docs MCP server, enables documentation search subagent
+# - GITHUB_PAT: GitHub Personal Access Token, enables GitHub subagent
 
 FROM python:3.11-slim
 
