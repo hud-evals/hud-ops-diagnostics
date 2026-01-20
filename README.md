@@ -11,11 +11,26 @@ orchestrator.py              # Main CLI + orch_env (module-level)
 │   ├── supabase.py          # Database/auth (Supabase MCP)
 │   ├── railway.py           # Deployments (Railway MCP)
 │   ├── kubectl.py           # Kubernetes (custom tools)
-│   ├── hud_docs.py          # HUD SDK docs (HUD Docs MCP)
+│   ├── docs.py              # Internal documentation (any Docs MCP)
 │   └── github.py            # Code/issues/PRs (GitHub MCP)
 ├── tasks.json               # Eval tasks for subagents
 └── run_evals.py             # Run evaluations
 ```
+
+## Dynamic Subagent Detection
+
+Subagents are **automatically registered** based on which environment variables are set. Only subagents with valid credentials will be available to the orchestrator.
+
+| Subagent | Required Env Var(s) | Description |
+|----------|---------------------|-------------|
+| `investigate_sentry` | `SENTRY_AUTH_TOKEN` | Error monitoring |
+| `investigate_supabase` | `SUPABASE_ACCESS_TOKEN` | Database/auth |
+| `investigate_railway` | `RAILWAY_API_TOKEN` | Deployments |
+| `investigate_kubernetes` | `KUBECONFIG_B64` or `KUBECONFIG` | Kubernetes cluster |
+| `search_docs` | `DOCS_MCP` | Internal documentation |
+| `investigate_github` | `GITHUB_PAT` | Code/issues/PRs |
+
+This means you can run the orchestrator with just the services you have credentials for.
 
 ## Docker Modes
 
@@ -24,7 +39,7 @@ The container supports two runtime modes via the `AGENT_MODE` environment variab
 | Mode | Command | Description |
 |------|---------|-------------|
 | `sentry` (default) | `hud dev environments.sentry:sentry_env` | Single Sentry subagent |
-| `orch` | `hud dev orchestrator:orch_env` | Full orchestrator with all 6 subagents |
+| `orch` | `hud dev orchestrator:orch_env` | Orchestrator with auto-detected subagents |
 
 ### Run in Sentry mode (default)
 ```bash
@@ -33,7 +48,7 @@ docker run -e SENTRY_AUTH_TOKEN=... hud-ops-diagnostics
 
 ### Run in Orchestrator mode
 ```bash
-docker run -e AGENT_MODE=orch -e SENTRY_AUTH_TOKEN=... -e OPENAI_API_KEY=... hud-ops-diagnostics
+docker run -e AGENT_MODE=orch -e SENTRY_AUTH_TOKEN=... -e SUPABASE_ACCESS_TOKEN=... hud-ops-diagnostics
 ```
 
 ## Setup
@@ -46,7 +61,7 @@ uv sync
 
 ### 2. Configure credentials
 
-Create `.env` with your tokens:
+Create `.env` with your tokens. Only include the services you want to use:
 
 ```bash
 # Sentry - https://sentry.io/settings/account/api/auth-tokens/
@@ -54,7 +69,7 @@ SENTRY_AUTH_TOKEN=sntrys_...
 
 # Supabase - https://supabase.com/dashboard/account/tokens
 SUPABASE_ACCESS_TOKEN=sbp_...
-SUPABASE_PROJECT_REF=your_project_ref
+SUPABASE_PROJECT_REF=your_project_ref  # optional, scopes to specific project
 
 # Railway - https://railway.app/account/tokens
 RAILWAY_API_TOKEN=...
@@ -63,11 +78,16 @@ RAILWAY_API_TOKEN=...
 GITHUB_PAT=ghp_...
 
 # kubectl - base64 encoded kubeconfig
-KUBECONFIG_BASE64=...
+KUBECONFIG_B64=...
 
-# OpenAI (for agents)
+# Internal documentation MCP server URL
+DOCS_MCP=https://docs.example.com/mcp
+
+# OpenAI (for agents and Sentry AI-powered search)
 OPENAI_API_KEY=sk-...
 ```
+
+**Note:** Subagents are auto-detected based on which env vars are set. You don't need all of them.
 
 ### 3. Test connections
 
@@ -126,8 +146,9 @@ async def investigate_issue(query: str, must_include: list[str] | None = None):
 
 ### Benefits
 
-- **6 subagents** instead of 60+ tools (reduced cognitive load)
-- **Specialized agents** for each domain (Sentry, Supabase, Railway, kubectl, HUD Docs, GitHub)
+- **Up to 6 subagents** instead of 60+ tools (reduced cognitive load)
+- **Specialized agents** for each domain (Sentry, Supabase, Railway, kubectl, Docs, GitHub)
+- **Auto-detected** based on which env vars are present
 - **Testable** - each subagent runs independently
 - **Composable** - easy to add/remove services
 - **READ-ONLY** - subagents investigate but don't make changes
@@ -156,7 +177,7 @@ python environments/sentry.py
 python environments/supabase.py
 python environments/railway.py
 python environments/kubectl.py
-python environments/hud_docs.py
+python environments/docs.py
 python environments/github.py
 ```
 
@@ -186,11 +207,11 @@ Kubernetes cluster health.
 - `kubectl_get_pods`, `kubectl_get_logs`
 - `kubectl_describe_pod`, `kubectl_get_events`, etc.
 
-### HUD Docs (`search_hud_docs`)
-HUD SDK documentation and architecture.
-- `SearchHud` - Search docs for concepts, examples
-- Understands v4 tasks vs v5 scenarios
-- Explains MCP protocol, environments, etc.
+### Internal Docs (`search_docs`)
+Internal documentation search (configurable via `DOCS_MCP`).
+- Search docs for architecture, concepts, examples
+- Connect to any docs MCP server via URL
+- Set `DOCS_MCP=https://docs.example.com/mcp`
 
 ### GitHub (`investigate_github`)
 Code, issues, PRs, and workflows.
