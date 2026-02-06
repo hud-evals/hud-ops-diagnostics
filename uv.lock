@@ -884,6 +884,7 @@ dependencies = [
     { name = "hud-python", extra = ["agents"] },
     { name = "pydantic-settings" },
     { name = "python-dotenv" },
+    { name = "pyyaml" },
     { name = "rich" },
 ]
 
@@ -899,6 +900,7 @@ requires-dist = [
     { name = "hud-python", extras = ["agents"], specifier = ">=0.5.9" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "pyyaml", specifier = ">=6.0" },
     { name = "rich", specifier = ">=13.0.0" },
 ]
 

@@ -1,0 +1,209 @@
+tasks:
+- name: find_responses_schema_error
+  prompt: OpenAI's new responses API is rejecting our tool definitions with a schema error. It's NOT the chat completions
+    endpoint - that's a different issue. Find what's wrong with our setup function's tool definition.
+  difficulty: hard
+  must_include:
+  - INFERENCE-HUD-AI-1R
+  - setup
+  - tools[5]
+  - type
+  must_not_include:
+  - INFERENCE-HUD-AI-21
+  - computer
+- name: find_chat_schema_error
+  prompt: The computer-use tool is failing with some kind of array schema issue. Users say it was working before. Find where
+    the 'items' definition is missing in our tool parameters.
+  difficulty: medium
+  must_include:
+  - INFERENCE-HUD-AI-21
+  - computer
+  - items
+  - path
+  must_not_include:
+  - setup
+  - /responses
+- name: uuid_vs_slug_confusion
+  prompt: The database is complaining about UUID syntax but users swear they're passing valid IDs. Something is getting passed
+    to task_version_id that isn't a UUID. Check the trace entry flow.
+  difficulty: hard
+  must_include:
+  - HUD-PLATFORM-7F
+  - invalid input syntax
+  - uuid
+  must_not_include:
+  - trace_id is invalid
+- name: duplicate_screenshot_upload
+  prompt: Screenshot uploads are failing with conflict errors. Looks like we're trying to upload the same file twice sometimes.
+    Where is this happening?
+  difficulty: easy
+  must_include:
+  - TELEMETRY-1VZ
+  - '409'
+  - Duplicate
+- name: aws_credential_failure
+  prompt: One of our background workers can't talk to AWS anymore. The token might have expired or rotated. It's not the main
+    platform - check the VM/world simulation workers.
+  difficulty: medium
+  must_include:
+  - OSWORLD-WORKER
+  - security token
+  - invalid
+- name: websocket_1006_investigation
+  prompt: Users are complaining about real-time updates randomly stopping. Their browser console shows WebSocket disconnections.
+    Which of our live endpoints is having the most issues?
+  difficulty: medium
+  must_include:
+  - HUD-PLATFORM-3Q
+  - '1006'
+  - /global/live
+- name: compare_schema_errors
+  prompt: We have two different schema validation failures hitting OpenAI - one on the responses API, one on chat completions.
+    What's the difference between them and which endpoints are affected?
+  difficulty: hard
+  must_include:
+  - '21'
+  - 1R
+  - /responses
+  - /chat/completions
+- name: highest_occurrence_issue
+  prompt: We're trying to prioritize bug fixes. What's the single noisiest error across all our services? The one generating
+    the most events - it's probably eating our Sentry quota.
+  difficulty: medium
+  must_include:
+  - HUD-PLATFORM-3Q
+  - WebSocket
+  - '1006'
+- name: pod_rate_limit_errors
+  prompt: Kubernetes is throttling us when we try to clean up pods. We're hitting API rate limits during high load. Find where
+    this is happening in the orchestrator.
+  difficulty: medium
+  must_include:
+  - ORCHESTRATOR-AC
+  - '429'
+  - pod
+- name: missing_header_errors
+  prompt: Some API requests are failing because clients aren't sending required headers. It's a header we need for multi-tenant
+    routing. Which header is missing most often?
+  difficulty: easy
+  must_include:
+  - HUD-PLATFORM-1C
+  - X-Organization-ID
+  - missing
+- name: find_anthropic_tool_id_uuid_confusion
+  prompt: 'A user reported: ''My rollout cancel API keeps failing with invalid UUID but I''m definitely passing the right
+    ID from my Claude response''. They''re on hud-platform. What ID are they actually sending?'
+  difficulty: expert
+  must_include:
+  - HUD-PLATFORM-9P
+  - toolu_01XArLykPgwrg24DR3WQJ3Mu
+  must_not_include:
+  - trace-123
+- name: find_exact_token_overflow
+  prompt: Someone's context window is blowing up. They said 'it was working yesterday but now Anthropic rejects it'. There
+    are multiple token overflow issues - find the one with EXACTLY 204,292 tokens and confirm its issue ID.
+  difficulty: expert
+  must_include:
+  - INFERENCE-HUD-AI-5J
+  - '204292'
+  must_not_include:
+  - '214938'
+- name: find_xai_content_violation_team
+  prompt: We got a complaint from Elon's team - apparently one of our users triggered their content filter repeatedly. Need
+    to identify which team to warn. Check inference errors for any Grok/XAI policy violations.
+  difficulty: expert
+  must_include:
+  - INFERENCE-HUD-AI-42
+  - 3701e612-87eb-489d-bd97-bb88c5db340f
+  must_not_include:
+  - 80ff49f7
+- name: find_resource_unavailable_event_count
+  prompt: Our orchestrator pods keep dying under load. The ops team mentioned something about 'resource unavailable' but there
+    are tons of resource-related errors. Find the specific errno 11 issue - I heard it has over 100k events?
+  difficulty: expert
+  must_include:
+  - ORCHESTRATOR-9N
+  - '140'
+  must_not_include:
+  - ORCHESTRATOR-1S
+- name: find_negative_credits_team
+  prompt: Finance flagged a team that somehow went into negative credits - they shouldn't be able to do that. There are multiple
+    credit-related blocks but one team has a suspiciously specific negative balance. Find them.
+  difficulty: expert
+  must_include:
+  - INFERENCE-HUD-AI-3K
+  - 2333bce5-086e-4ff1-ab68-e881b9417483
+  - '-137'
+- name: find_github_sha_v_error
+  prompt: Build triggers are failing with GitHub 422s. The user insists they're passing a valid version tag. There are multiple
+    SHA-related GitHub errors in hud-platform but one has a hilariously wrong value - find what they actually passed.
+  difficulty: expert
+  must_include:
+  - HUD-PLATFORM-9V
+  - 'SHA: v'
+  - '422'
+  must_not_include:
+  - master
+- name: find_only_platform_worker_issue
+  prompt: Someone left a test cron job running in production and now it's spamming errors. It's not in the main platform -
+    check the worker services. What's the embarassing function name?
+  difficulty: hard
+  must_include:
+  - PLATFORM-WORKER-1
+  - print_hello
+- name: find_telemetry_size_limit
+  prompt: Telemetry uploads are getting rejected for being too large. There are DOZENS of these size limit errors with different
+    MB values. Find the one that's exactly 15.47MB - we need to trace that specific trace run.
+  difficulty: expert
+  must_include:
+  - TELEMETRY-2Q9
+  - '15.47'
+  must_not_include:
+  - '15.93'
+  - '15.68'
+- name: find_billing_model_not_mapped
+  prompt: A customer fine-tuned a model and now billing is broken for them. LiteLLM doesn't know how to price it. Find the
+    full fine-tuned model string - should start with 'ft:' and have our org name in it.
+  difficulty: expert
+  must_include:
+  - INFERENCE-HUD-AI-3A
+  - ft:o4-mini-2025-04-16:human-union-data::CtllGVfd:ckpt-step-5
+- name: find_blocked_team_never_paid
+  prompt: A user is complaining they can't run any pods but claims they never even signed up for billing. Check the orchestrator
+    for blocks on teams that 'never paid' - we need their team ID to investigate.
+  difficulty: expert
+  must_include:
+  - ORCHESTRATOR-2Y
+  - fdf5f543-3085-4505-a6b4-f0f0bad21677
+- name: find_openrouter_model_not_found
+  prompt: Users are getting 404s from OpenRouter saying 'no endpoints found'. We support dozens of OpenRouter models but apparently
+    one got deprecated or something. Which model string are they trying to use?
+  difficulty: hard
+  must_include:
+  - INFERENCE-HUD-AI-2A
+  - z-ai/glm-4.6:exacto
+- name: find_websocket_http500_issue
+  prompt: WebSocket connections are being actively REJECTED by our server, not just dropping. This is different from the usual
+    connection drops we see. Find where the server itself is returning an error during the handshake.
+  difficulty: hard
+  must_include:
+  - HUD-PLATFORM-45
+  - HTTP 500
+  must_not_include:
+  - '1006'
+- name: count_inference_consecutive_http_issues
+  prompt: We're seeing a pattern of repeated HTTP failures to upstream providers. Sentry groups these as 'Consecutive HTTP'
+    type. How widespread is this in inference? Find all the distinct issues of this category.
+  difficulty: expert
+  must_include:
+  - INFERENCE-HUD-AI-53
+  - INFERENCE-HUD-AI-5S
+  - INFERENCE-HUD-AI-55
+- name: find_s3_forbidden_inference_upload
+  prompt: AWS is rejecting our uploads with 403 Forbidden. This isn't the usual duplicate error - it's an actual permission
+    denied. Check the telemetry service for S3 permission failures and get the specific log ID that failed.
+  difficulty: hard
+  must_include:
+  - TELEMETRY-2HK
+  - 3038ffff-34ec-4155-8848-b40b9e7947be
+  - '403'

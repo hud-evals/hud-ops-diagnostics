@@ -49,6 +49,13 @@ if sentry_token:
             "args": ["/c", "npx", "-y", "@sentry/mcp-server@latest"],
             "env": mcp_env
         }
+    elif os.environ.get("IS_TAIGA") == "1":
+        # In Docker: package is pre-installed globally, -y to avoid interactive prompt
+        sentry_config = {
+            "command": "npx",
+            "args": ["-y", "@sentry/mcp-server"],
+            "env": mcp_env
+        }
     else:
         sentry_config = {
             "command": "npx",
@@ -119,6 +126,135 @@ Provide a detailed summary including:
 
 
 # =============================================================================
+# TAIGA TOOLS (only exposed when running on Taiga platform)
+# =============================================================================
+#
+# When IS_TAIGA=1, registers setup_problem and grade_problem tools.
+# Taiga calls setup_problem to initialize the task (returns the prompt),
+# then the agent investigates using Sentry MCP tools, and finally
+# Taiga calls grade_problem with the full transcript for scoring.
+# =============================================================================
+
+if os.environ.get("IS_TAIGA") == "1":
+    import yaml
+
+    TASKS_FILE = os.environ.get("TASKS_FILE", "/app/tasks.yaml")
+
+    def _load_tasks() -> list[dict]:
+        """Load task definitions from tasks.yaml."""
+        tasks_file = TASKS_FILE
+        if not os.path.exists(tasks_file):
+            alt = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tasks.yaml")
+            if os.path.exists(alt):
+                tasks_file = alt
+            else:
+                logger.warning("Tasks file not found: %s", tasks_file)
+                return []
+        with open(tasks_file, "r", encoding="utf-8") as f:
+            data = yaml.load(f, Loader=yaml.FullLoader)
+        return data.get("tasks", []) if isinstance(data, dict) else data
+
+    @sentry_env.tool()
+    async def setup_problem(
+        problem_id: str,
+        task_prompt: str | None = None,
+        rubric: Any | None = None,
+        system_prompt: str | None = None,
+        selected_folder: str | None = None,
+        grader_metadata: Any | None = None,
+        metadata: Any | None = None,
+        preloaded_files: Any | None = None,
+        output_directory: str | None = None,
+        domain_allowlist: Any | None = None,
+        enable_anthropic_api: bool | None = None,
+        extra_fields: Any | None = None,
+    ) -> str:
+        """Setup the problem for the given task id.
+
+        Returns the task prompt for the agent to investigate.
+        """
+        logger.info("[TAIGA] setup_problem called with problem_id: %s", problem_id)
+        tasks = _load_tasks()
+        task = next((t for t in tasks if t["name"] == problem_id), None)
+        if not task:
+            return f"Task {problem_id} not found"
+        return task_prompt if task_prompt else task["prompt"]
+
+    @sentry_env.tool()
+    async def grade_problem(
+        problem_id: str,
+        transcript: str,
+        selected_folder: str | None = None,
+        grader_metadata: Any | None = None,
+        metadata: Any | None = None,
+        task_prompt: str | None = None,
+        rubric: Any | None = None,
+        system_prompt: str | None = None,
+        preloaded_files: Any | None = None,
+        output_directory: str | None = None,
+        domain_allowlist: Any | None = None,
+        enable_anthropic_api: bool | None = None,
+        extra_fields: Any | None = None,
+    ) -> dict:
+        """Grade the problem using must_include/must_not_include string matching."""
+        logger.info("[TAIGA] grade_problem called for %s", problem_id)
+        tasks = _load_tasks()
+        task = next((t for t in tasks if t["name"] == problem_id), None)
+        if not task:
+            return {
+                "subscores": {"error": 0.0},
+                "weights": {"error": 1},
+                "metadata": {"error": f"Task {problem_id} not found"},
+            }
+
+        response_lower = transcript.lower()
+        must_include = task.get("must_include", [])
+        must_not_include = task.get("must_not_include", [])
+
+        subscores = {}
+        weights = {}
+
+        # Count total positive criteria for weight normalization
+        num_positive = len(must_include) if must_include else 1
+        positive_weight = round(1.0 / num_positive, 3)
+
+        # Each must_include fact is a criterion
+        if must_include:
+            for i, fact in enumerate(must_include):
+                key = f"includes_{i + 1}"
+                found = fact.lower() in response_lower
+                subscores[key] = 1.0 if found else 0.0
+                weights[key] = positive_weight
+
+        # must_not_include: if any forbidden fact is present, zero out everything
+        if must_not_include:
+            has_mistake = any(bad.lower() in response_lower for bad in must_not_include)
+            if has_mistake:
+                for key in subscores:
+                    subscores[key] = 0.0
+
+        # Fallback if no criteria defined
+        if not subscores:
+            subscores = {"result": 1.0}
+            weights = {"result": 1.0}
+
+        score = round(sum(subscores[k] * weights[k] for k in subscores), 3)
+        logger.info("[TAIGA] grade_problem result: score=%s subscores=%s", score, subscores)
+
+        return {
+            "subscores": subscores,
+            "weights": weights,
+            "metadata": {
+                "score": score,
+                "must_include": must_include,
+                "must_not_include": must_not_include,
+            },
+        }
+
+    logger.info("[TAIGA] Registered setup_problem and grade_problem tools")
+
+
+# =============================================================================
 # TEST
 # =============================================================================
 
@@ -153,5 +289,8 @@ async def test_sentry_tools():
 
 
 if __name__ == "__main__":
-    asyncio.run(test_sentry_tools())
+    if "--test" in sys.argv:
+        asyncio.run(test_sentry_tools())
+    else:
+        sentry_env.run()
 

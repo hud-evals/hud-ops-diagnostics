@@ -1,0 +1,38 @@
+{
+  "problem_set": {
+    "owner": "hud",
+    "name": "TGA-ops-diagnostics-demo",
+    "description": "Ops diagnostics benchmark tasks",
+    "problems": [
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.04",
+        "startup_command": "/app/start.sh",
+        "id": "duplicate_screenshot_upload",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "easy"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "Screenshot uploads are failing with conflict errors. Looks like we're trying to upload the same file twice sometimes. Where is this happening?",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: TELEMETRY-1VZ",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: 409",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: Duplicate",
+            "weight": 1
+          }
+        ]
+      }
+    ]
+  }
+}

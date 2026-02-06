@@ -32,6 +32,12 @@ Subagents are **automatically registered** based on which environment variables 
 
 This means you can run the orchestrator with just the services you have credentials for.
 
+## Taiga
+
+```bash
+docker build --platform linux/amd64 --build-arg SENTRY_AUTH_TOKEN=sntrys_... -t us-east1-docker.pkg.dev/gcp-taiga/hud/ops_diagnostics:0.02 . && docker push us-east1-docker.pkg.dev/gcp-taiga/hud/ops_diagnostics:0.02 && python generate_problems_metadata.py --output taiga.json
+```
+
 ## Docker Modes
 
 The container supports two runtime modes via the `AGENT_MODE` environment variable:
