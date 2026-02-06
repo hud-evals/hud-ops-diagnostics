@@ -36,7 +36,7 @@ sentry_env = Environment(name="sentry-agent")
 IS_WINDOWS = platform.system() == "Windows"
 sentry_token = os.getenv("SENTRY_AUTH_TOKEN")
 
-if sentry_token and os.environ.get("IS_TAIGA") != "1":
+if sentry_token:
     logger.info("Connecting to Sentry MCP server...")
     mcp_env = {"SENTRY_ACCESS_TOKEN": sentry_token}
     if os.getenv("OPENAI_API_KEY"):
@@ -48,6 +48,14 @@ if sentry_token and os.environ.get("IS_TAIGA") != "1":
             "args": ["/c", "npx", "-y", "@sentry/mcp-server@latest"],
             "env": mcp_env
         }
+    elif os.environ.get("IS_TAIGA") == "1":
+        # Bypass npx (too slow for Taiga's startup timeout).
+        # Runs the pre-installed binary directly via node.
+        sentry_config = {
+            "command": "node",
+            "args": ["/usr/local/lib/node_modules/@sentry/mcp-server/dist/index.js"],
+            "env": mcp_env
+        }
     else:
         sentry_config = {
             "command": "npx",
@@ -55,7 +63,7 @@ if sentry_token and os.environ.get("IS_TAIGA") != "1":
             "env": mcp_env
         }
     sentry_env.connect_mcp_config({"sentry": sentry_config})
-elif not sentry_token:
+else:
     logger.warning("SENTRY_AUTH_TOKEN not set - Sentry tools unavailable")
 
 
