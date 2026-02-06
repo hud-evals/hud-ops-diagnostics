@@ -43,7 +43,10 @@ ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED="1"
 ENV IS_TAIGA="1"
 
-ARG SENTRY_AUTH_TOKEN="sntrys_placeholder"
+# REQUIRED: pass your real Sentry token at build time.
+# Without it, the Sentry MCP server won't start and the agent has no tools.
+# docker build --build-arg SENTRY_AUTH_TOKEN=sntrys_... ...
+ARG SENTRY_AUTH_TOKEN=""
 ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 
 CMD ["/app/start.sh"]
