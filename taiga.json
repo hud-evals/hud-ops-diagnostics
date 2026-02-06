@@ -5,7 +5,122 @@
     "description": "Ops diagnostics benchmark tasks",
     "problems": [
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.04",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_responses_schema_error",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "hard"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "OpenAI's new responses API is rejecting our tool definitions with a schema error. It's NOT the chat completions endpoint - that's a different issue. Find what's wrong with our setup function's tool definition.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: INFERENCE-HUD-AI-1R",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: setup",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: tools[5]",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: type",
+            "weight": 1
+          },
+          {
+            "criterion": "Response does NOT include: INFERENCE-HUD-AI-21",
+            "weight": -1
+          },
+          {
+            "criterion": "Response does NOT include: computer",
+            "weight": -1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_chat_schema_error",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "medium"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "The computer-use tool is failing with some kind of array schema issue. Users say it was working before. Find where the 'items' definition is missing in our tool parameters.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: INFERENCE-HUD-AI-21",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: computer",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: items",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: path",
+            "weight": 1
+          },
+          {
+            "criterion": "Response does NOT include: setup",
+            "weight": -1
+          },
+          {
+            "criterion": "Response does NOT include: /responses",
+            "weight": -1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "uuid_vs_slug_confusion",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "hard"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "The database is complaining about UUID syntax but users swear they're passing valid IDs. Something is getting passed to task_version_id that isn't a UUID. Check the trace entry flow.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: HUD-PLATFORM-7F",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: invalid input syntax",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: uuid",
+            "weight": 1
+          },
+          {
+            "criterion": "Response does NOT include: trace_id is invalid",
+            "weight": -1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
         "startup_command": "/app/start.sh",
         "id": "duplicate_screenshot_upload",
         "required_tools": [],
@@ -29,6 +144,582 @@
           },
           {
             "criterion": "Response includes: Duplicate",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "aws_credential_failure",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "medium"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "One of our background workers can't talk to AWS anymore. The token might have expired or rotated. It's not the main platform - check the VM/world simulation workers.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: OSWORLD-WORKER",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: security token",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: invalid",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "websocket_1006_investigation",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "medium"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "Users are complaining about real-time updates randomly stopping. Their browser console shows WebSocket disconnections. Which of our live endpoints is having the most issues?",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: HUD-PLATFORM-3Q",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: 1006",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: /global/live",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "compare_schema_errors",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "hard"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "We have two different schema validation failures hitting OpenAI - one on the responses API, one on chat completions. What's the difference between them and which endpoints are affected?",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: 21",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: 1R",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: /responses",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: /chat/completions",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "highest_occurrence_issue",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "medium"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "We're trying to prioritize bug fixes. What's the single noisiest error across all our services? The one generating the most events - it's probably eating our Sentry quota.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: HUD-PLATFORM-3Q",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: WebSocket",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: 1006",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "pod_rate_limit_errors",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "medium"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "Kubernetes is throttling us when we try to clean up pods. We're hitting API rate limits during high load. Find where this is happening in the orchestrator.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: ORCHESTRATOR-AC",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: 429",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: pod",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "missing_header_errors",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "easy"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "Some API requests are failing because clients aren't sending required headers. It's a header we need for multi-tenant routing. Which header is missing most often?",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: HUD-PLATFORM-1C",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: X-Organization-ID",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: missing",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_anthropic_tool_id_uuid_confusion",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "expert"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "A user reported: 'My rollout cancel API keeps failing with invalid UUID but I'm definitely passing the right ID from my Claude response'. They're on hud-platform. What ID are they actually sending?",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: HUD-PLATFORM-9P",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: toolu_01XArLykPgwrg24DR3WQJ3Mu",
+            "weight": 1
+          },
+          {
+            "criterion": "Response does NOT include: trace-123",
+            "weight": -1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_exact_token_overflow",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "expert"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "Someone's context window is blowing up. They said 'it was working yesterday but now Anthropic rejects it'. There are multiple token overflow issues - find the one with EXACTLY 204,292 tokens and confirm its issue ID.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: INFERENCE-HUD-AI-5J",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: 204292",
+            "weight": 1
+          },
+          {
+            "criterion": "Response does NOT include: 214938",
+            "weight": -1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_xai_content_violation_team",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "expert"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "We got a complaint from Elon's team - apparently one of our users triggered their content filter repeatedly. Need to identify which team to warn. Check inference errors for any Grok/XAI policy violations.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: INFERENCE-HUD-AI-42",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: 3701e612-87eb-489d-bd97-bb88c5db340f",
+            "weight": 1
+          },
+          {
+            "criterion": "Response does NOT include: 80ff49f7",
+            "weight": -1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_resource_unavailable_event_count",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "expert"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "Our orchestrator pods keep dying under load. The ops team mentioned something about 'resource unavailable' but there are tons of resource-related errors. Find the specific errno 11 issue - I heard it has over 100k events?",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: ORCHESTRATOR-9N",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: 140",
+            "weight": 1
+          },
+          {
+            "criterion": "Response does NOT include: ORCHESTRATOR-1S",
+            "weight": -1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_negative_credits_team",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "expert"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "Finance flagged a team that somehow went into negative credits - they shouldn't be able to do that. There are multiple credit-related blocks but one team has a suspiciously specific negative balance. Find them.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: INFERENCE-HUD-AI-3K",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: 2333bce5-086e-4ff1-ab68-e881b9417483",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: -137",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_github_sha_v_error",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "expert"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "Build triggers are failing with GitHub 422s. The user insists they're passing a valid version tag. There are multiple SHA-related GitHub errors in hud-platform but one has a hilariously wrong value - find what they actually passed.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: HUD-PLATFORM-9V",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: SHA: v",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: 422",
+            "weight": 1
+          },
+          {
+            "criterion": "Response does NOT include: master",
+            "weight": -1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_only_platform_worker_issue",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "hard"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "Someone left a test cron job running in production and now it's spamming errors. It's not in the main platform - check the worker services. What's the embarassing function name?",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: PLATFORM-WORKER-1",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: print_hello",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_telemetry_size_limit",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "expert"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "Telemetry uploads are getting rejected for being too large. There are DOZENS of these size limit errors with different MB values. Find the one that's exactly 15.47MB - we need to trace that specific trace run.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: TELEMETRY-2Q9",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: 15.47",
+            "weight": 1
+          },
+          {
+            "criterion": "Response does NOT include: 15.93",
+            "weight": -1
+          },
+          {
+            "criterion": "Response does NOT include: 15.68",
+            "weight": -1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_billing_model_not_mapped",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "expert"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "A customer fine-tuned a model and now billing is broken for them. LiteLLM doesn't know how to price it. Find the full fine-tuned model string - should start with 'ft:' and have our org name in it.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: INFERENCE-HUD-AI-3A",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: ft:o4-mini-2025-04-16:human-union-data::CtllGVfd:ckpt-step-5",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_blocked_team_never_paid",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "expert"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "A user is complaining they can't run any pods but claims they never even signed up for billing. Check the orchestrator for blocks on teams that 'never paid' - we need their team ID to investigate.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: ORCHESTRATOR-2Y",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: fdf5f543-3085-4505-a6b4-f0f0bad21677",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_openrouter_model_not_found",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "hard"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "Users are getting 404s from OpenRouter saying 'no endpoints found'. We support dozens of OpenRouter models but apparently one got deprecated or something. Which model string are they trying to use?",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: INFERENCE-HUD-AI-2A",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: z-ai/glm-4.6:exacto",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_websocket_http500_issue",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "hard"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "WebSocket connections are being actively REJECTED by our server, not just dropping. This is different from the usual connection drops we see. Find where the server itself is returning an error during the handshake.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: HUD-PLATFORM-45",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: HTTP 500",
+            "weight": 1
+          },
+          {
+            "criterion": "Response does NOT include: 1006",
+            "weight": -1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "count_inference_consecutive_http_issues",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "expert"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "We're seeing a pattern of repeated HTTP failures to upstream providers. Sentry groups these as 'Consecutive HTTP' type. How widespread is this in inference? Find all the distinct issues of this category.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: INFERENCE-HUD-AI-53",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: INFERENCE-HUD-AI-5S",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: INFERENCE-HUD-AI-55",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "startup_command": "/app/start.sh",
+        "id": "find_s3_forbidden_inference_upload",
+        "required_tools": [],
+        "metadata": {
+          "difficulty": "hard"
+        },
+        "system_prompt": "You are a Sentry specialist. Use the available Sentry tools to investigate the query.\n\nIMPORTANT: This is a READ-ONLY investigation. Do NOT modify issue status or assignments.\n\nUse the available Sentry tools to:\n1. Search for related issues or events\n2. Get issue details if you find relevant issues\n3. Analyze with Seer if available for root cause\n\nProvide a detailed summary including:\n- Issue ID(s) found\n- Root cause analysis with specific technical details\n- Affected users/occurrences\n- Recommended fixes (for human to implement)",
+        "task_prompt": "AWS is rejecting our uploads with 403 Forbidden. This isn't the usual duplicate error - it's an actual permission denied. Check the telemetry service for S3 permission failures and get the specific log ID that failed.",
+        "enable_anthropic_api": true,
+        "domain_allowlist": [
+          "*"
+        ],
+        "rubric": [
+          {
+            "criterion": "Response includes: TELEMETRY-2HK",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: 3038ffff-34ec-4155-8848-b40b9e7947be",
+            "weight": 1
+          },
+          {
+            "criterion": "Response includes: 403",
             "weight": 1
           }
         ]
