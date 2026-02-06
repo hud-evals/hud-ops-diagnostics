@@ -5,7 +5,7 @@
     "description": "Ops diagnostics benchmark tasks",
     "problems": [
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_responses_schema_error",
         "required_tools": [],
@@ -46,7 +46,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_chat_schema_error",
         "required_tools": [],
@@ -87,7 +87,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "uuid_vs_slug_confusion",
         "required_tools": [],
@@ -120,7 +120,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "duplicate_screenshot_upload",
         "required_tools": [],
@@ -149,7 +149,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "aws_credential_failure",
         "required_tools": [],
@@ -178,7 +178,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "websocket_1006_investigation",
         "required_tools": [],
@@ -207,7 +207,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "compare_schema_errors",
         "required_tools": [],
@@ -240,7 +240,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "highest_occurrence_issue",
         "required_tools": [],
@@ -269,7 +269,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "pod_rate_limit_errors",
         "required_tools": [],
@@ -298,7 +298,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "missing_header_errors",
         "required_tools": [],
@@ -327,7 +327,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_anthropic_tool_id_uuid_confusion",
         "required_tools": [],
@@ -356,7 +356,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_exact_token_overflow",
         "required_tools": [],
@@ -385,7 +385,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_xai_content_violation_team",
         "required_tools": [],
@@ -414,7 +414,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_resource_unavailable_event_count",
         "required_tools": [],
@@ -443,7 +443,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_negative_credits_team",
         "required_tools": [],
@@ -472,7 +472,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_github_sha_v_error",
         "required_tools": [],
@@ -505,7 +505,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_only_platform_worker_issue",
         "required_tools": [],
@@ -530,7 +530,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_telemetry_size_limit",
         "required_tools": [],
@@ -563,7 +563,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_billing_model_not_mapped",
         "required_tools": [],
@@ -588,7 +588,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_blocked_team_never_paid",
         "required_tools": [],
@@ -613,7 +613,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_openrouter_model_not_found",
         "required_tools": [],
@@ -638,7 +638,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_websocket_http500_issue",
         "required_tools": [],
@@ -667,7 +667,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "count_inference_consecutive_http_issues",
         "required_tools": [],
@@ -696,7 +696,7 @@
         ]
       },
       {
-        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07",
+        "image": "us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.08",
         "startup_command": "/app/start.sh",
         "id": "find_s3_forbidden_inference_upload",
         "required_tools": [],

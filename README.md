@@ -34,8 +34,10 @@ This means you can run the orchestrator with just the services you have credenti
 
 ## Taiga
 
+Requires `SENTRY_AUTH_TOKEN` baked into the image. Get one at https://sentry.io/settings/account/api/auth-tokens/
+
 ```bash
-docker build --platform linux/amd64 --build-arg SENTRY_AUTH_TOKEN=sntrys_... -t us-east1-docker.pkg.dev/gcp-taiga/hud/ops_diagnostics:0.02 . && docker push us-east1-docker.pkg.dev/gcp-taiga/hud/ops_diagnostics:0.02 && python generate_problems_metadata.py --output taiga.json
+docker build --platform linux/amd64 --build-arg SENTRY_AUTH_TOKEN=sntrys_YOUR_TOKEN -t us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07 . && docker push us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07 && python generate_problems_metadata.py --image us-east1-docker.pkg.dev/gcp-taiga/hud/mario_ops_demo:0.07 --output taiga.json
 ```
 
 ## Docker Modes
